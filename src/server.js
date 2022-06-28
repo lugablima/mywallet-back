@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { MongoClient, ObjectId } from "mongodb";
 import joi from "joi";
 import dayjs from "dayjs";
+import { stripHtml } from "string-strip-html";
 
 const server = express();
 
@@ -32,6 +33,10 @@ server.post("/sign-up", async (req, res) => {
   const { error } = newUserSchema.validate(newUser);
 
   if (error) return res.sendStatus(422);
+
+  for (const prop in newUser) {
+    newUser[prop] = newUser[prop].trim();
+  }
 
   try {
     await mongoClient.connect();
@@ -66,6 +71,10 @@ server.post("/sign-in", async (req, res) => {
 
     const { error } = infosUserSchema.validate(infosUser);
 
+    for (const prop in infosUser) {
+      infosUser[prop] = infosUser[prop].trim();
+    }
+
     const user = await db.collection("users").findOne(infosUser);
 
     if (error || !user) return res.sendStatus(422);
@@ -90,7 +99,7 @@ server.get("/extract", async (req, res) => {
 
     const user = await db.collection("users").findOne({ _id: new ObjectId(userID) });
 
-    if (user) return res.sendStatus(422);
+    if (!user) return res.sendStatus(422);
 
     const extract = await db.collection("extracts").find({ userID: user._id }).toArray();
 
@@ -114,14 +123,18 @@ server.post("/extract", async (req, res) => {
     const userExists = await db.collection("users").findOne({ _id: new ObjectId(userID) });
 
     const transactionInfosSchema = joi.object({
-      amount: joi.number().positive().required(),
+      amount: joi.number().trim().positive().required(),
       description: joi.string().trim().required(),
-      type: joi.string().valid("entrada", "saída").required(),
+      type: joi.string().trim().valid("entrada", "saída").required(),
     });
 
     const { error } = transactionInfosSchema.validate(transactionInfos);
 
     if (!userExists || error) return res.sendStatus(422);
+
+    for (const prop in transactionInfos) {
+      transactionInfos[prop] = stripHtml(transactionInfos[prop]).result.trim();
+    }
 
     await db
       .collection("extracts")
