@@ -1,7 +1,7 @@
 import express, { json } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import joi from "joi";
 
 const server = express();
@@ -11,6 +11,8 @@ dotenv.config();
 
 const mongoClient = new MongoClient(process.env.MONGO_DB_URI);
 let db = null;
+
+/* Users routes */
 
 server.post("/sign-up", async (req, res) => {
   const newUser = req.body;
@@ -68,9 +70,35 @@ server.post("/sign-in", async (req, res) => {
     if (error || !user) return res.sendStatus(422);
 
     res.status(200).send(user);
+    mongoClient.close();
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
+    mongoClient.close();
+  }
+});
+
+/* Extracts routes */
+
+server.get("/extract", async (req, res) => {
+  const userID = req.header("userID");
+
+  try {
+    await mongoClient.connect();
+    db = mongoClient.db(process.env.MONGO_DB_NAME);
+
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userID) });
+
+    if (user) return res.sendStatus(422);
+
+    const extract = await db.collection("extracts").find({ _id: user._id }).toArray();
+
+    res.status(200).send(extract);
+    mongoClient.close();
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+    mongoClient.close();
   }
 });
 
