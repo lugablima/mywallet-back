@@ -1,13 +1,17 @@
-import { db, ObjectId } from "../db.js";
+import db from "../db.js";
 
 async function validateTokenUser(req, res, next) {
-  const userID = req.header("UserID");
+  const { authorization } = req.headers;
+  const token = authorization?.replace("Bearer ", "");
+
+  if (!token) return res.sendStatus(401);
+
   try {
-    const user = await db.collection("users").findOne({ _id: new ObjectId(userID) });
+    const session = await db.collection("sessions").findOne({ token });
 
-    if (!user) return res.sendStatus(422);
+    if (!session) return res.sendStatus(401);
 
-    res.locals.user = user;
+    res.locals.userId = session.userId;
     next();
   } catch (error) {
     console.log(error);

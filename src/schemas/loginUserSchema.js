@@ -1,8 +1,8 @@
 import joi from "joi";
 
-const infosUserSchema = joi.object({
+const loginUserSchema = joi.object({
   email: joi.string().trim().email().required(),
   password: joi.string().trim().required(),
 });
 
-export default infosUserSchema;
+export default loginUserSchema;

@@ -1,10 +1,11 @@
-import { db, ObjectId } from "../db.js";
+import db from "../db.js";
+import dayjs from "dayjs";
 
 export async function getExtract(req, res) {
   try {
-    const user = res.locals.user;
+    const userId = res.locals.userId;
 
-    const extract = await db.collection("extracts").find({ userID: user._id }).toArray();
+    const extract = await db.collection("extracts").find({ userId }).toArray();
 
     res.status(200).send(extract);
   } catch (error) {
@@ -14,13 +15,10 @@ export async function getExtract(req, res) {
 }
 
 export async function addTransaction(req, res) {
-  //const userID = req.header("UserID");
   try {
-    const transactionInfos = res.locals.transactionInfos;
+    const { userId, transactionInfos } = res.locals;
 
-    await db
-      .collection("extracts")
-      .insertOne({ ...transactionInfos, userID: new ObjectId(userID), date: dayjs().format("DD/MM") });
+    await db.collection("extracts").insertOne({ ...transactionInfos, userId, date: dayjs().format("DD/MM") });
 
     res.sendStatus(201);
   } catch (error) {

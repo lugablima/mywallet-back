@@ -1,17 +1,18 @@
 import transactionSchema from "../schemas/transactionSchema.js";
+import { stripHtml } from "string-strip-html";
 
 async function validateTransactionInfos(req, res, next) {
-  // const userExists = await db.collection("users").findOne({ _id: new ObjectId(userID) });
+  const userId = res.locals.userId;
   const transactionInfos = req.body;
+
   const { error } = transactionSchema.validate(transactionInfos);
 
   if (error) return res.sendStatus(422);
 
-  for (const prop in transactionInfos) {
-    transactionInfos[prop] = stripHtml(transactionInfos[prop]).result.trim();
-  }
+  transactionInfos.description = stripHtml(transactionInfos.description).result.trim();
+  transactionInfos.type = transactionInfos.type.trim();
 
-  res.locals.transactionInfos = transactionInfos;
+  res.locals = { transactionInfos, userId };
   next();
 }
 
