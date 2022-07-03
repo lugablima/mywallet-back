@@ -18,7 +18,7 @@ async function validateNewUser(req, res, next) {
   delete newUser.repeat_password;
 
   try {
-    const userAlreadyExists = await db.collection("users").findOne({ name: newUser.name });
+    const userAlreadyExists = await db.collection("users").findOne({ email: newUser.email });
 
     if (userAlreadyExists) return res.sendStatus(409);
 
