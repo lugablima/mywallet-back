@@ -12,8 +12,6 @@ app.use(json(), cors());
 app.use(authRouter);
 app.use(extractRouter);
 
-const PORT = process.env.PORT || 5001;
-
-app.listen(PORT, () => {
-  console.log(`The server is running in http://localhost:${PORT}`);
+app.listen(process.env.PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
